@@ -1,8 +1,22 @@
+##############################################################################
+#    ____                              _              _____ _         
+#   / __ \__  ______  ____ _____ ___  (___________   / ___/(_____ ___ 
+#  / / / / / / / __ \/ __ `/ __ `__ \/ / ___/ ___/   \__ \/ / __ `__ \
+# / /_/ / /_/ / / / / /_/ / / / / / / / /__(__  )   ___/ / / / / / / /
+#/_____/\__, /_/ /_/\__,_/_/ /_/ /_/_/\___/____/   /____/_/_/ /_/ /_/ 
+#      /____/                                                         
+#
+# This is the base code for performing the momentary calcluations and
+# numerical integrations for an euler based dynamics simulation with conserved
+# angular momentum.
+#
+##############################################################################
 from locale import normalize
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 
 
+# This is the dt = 0 solution for forces in on the object
 def Euler_motion(w, M, Idiag, t):
 
 	wdhold = np.matmul((M - np.cross(w,(np.matmul(Idiag, w)))),
@@ -11,8 +25,11 @@ def Euler_motion(w, M, Idiag, t):
 	return wdhold
 
 
+# This is the conversion of body fixed angular velocity to Inertial 
+# quaternion rate
 def w_to_Qdot(velocity, quat):
     
+    # Principal angles to quaternion matrix transform
     Rq = np.array([[1-(2*quat[2]**2)-(2*quat[3]**2), 
                     2*quat[1]*quat[2]-2*quat[0]*quat[3], 
                     2*quat[1]*quat[3]+2*quat[0]*quat[2]], 
@@ -28,13 +45,14 @@ def w_to_Qdot(velocity, quat):
 
     world_velocity = np.matmul(Rq, velocity)
     v2 = [quat[1], quat[2], quat[3]]
+    # quaternion math for transform
     qdot = np.append(-(np.matmul(world_velocity, v2)),
                      (quat[0]*world_velocity)+
                      np.cross(world_velocity,v2))
 
     return qdot
 
-
+# Numerical integration of the euler motion and Quaterion rates
 def RK45_step(w, M, Idiag, time, deltat, attitude_quat):
 
     kq1 = deltat * w_to_Qdot(w, attitude_quat)
@@ -51,7 +69,7 @@ def RK45_step(w, M, Idiag, time, deltat, attitude_quat):
     
     return new_w, new_Q
 
-
+# function to simulate the movement over a specified time and dt
 def simulate_dynamics(I_diag, init_velo, attitude, moments, run_time, dt,
                       just_last=True):
 
@@ -101,14 +119,16 @@ def quaternion_rotation(quat0, quat1):
                                a1*d2 + b1*c2 - c1*b2 + d1*a2
                               ], dtype=np.float64)
     
-    # find the vector and angle to rotate about
+    # find the vector and angle to rotate about for axis angle representation.
+    # This is important because the Atan2 and norm version takes care of the 
+    # double rotation and sign flip. dont use sin/cos(theta/2) version...gross
     normal = np.linalg.norm([r1, r2, r3])
     theta = np.arctan2(normal, r0)
 
     if normal == 0:
         r_vector = [0, 0, 0]
     else:
-        r_vector = np.divide([r1, r2, r3], np.sin(theta))
+        r_vector = np.divide([r1, r2, r3], normal)
 
     return np.append(np.degrees(2*theta), r_vector)
 
