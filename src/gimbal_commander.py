@@ -66,7 +66,7 @@ def quaternion_movement(attitude_mat):
     
     
     normal = np.linalg.norm([r1,r2,r3])
-    r3 = r3 + np.pi
+    
     
     print(r3)
     if normal == 0:
@@ -77,7 +77,7 @@ def quaternion_movement(attitude_mat):
         spherical_phi = np.arctan2(r2, r1)
 
 
-    Bphi.move(int(np.degrees(r3)*10))
+    Bphi.move(int(np.degrees*10))
     Btheta.move(int(np.rad2deg(spherical_theta)*10))
     Bgamma.move(int(np.rad2deg(spherical_phi)*10))
 
