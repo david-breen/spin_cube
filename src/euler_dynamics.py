@@ -132,7 +132,36 @@ def quaternion_rotation(quat0, quat1):
 
     return np.append(np.degrees(2*theta), r_vector)
 
+def quaternion_hamilton(quat0, quat1):
 
+    a1, b1, c1, d1 = quat0
+    b1, c1, d1 = -b1, -c1, -d1
+    a2, b2, c2, d2 = quat1
+
+    # this is just the hamiltonian product
+    r0, r1, r2, r3 = np.array([a1*a2 - b1*b2 - c1*c2 - d1*d2,
+                               a1*b2 + b1*a2 + c1*d2 - d1*c2,
+                               a1*c2 - b1*d2 + c1*a2 + d1*b2,
+                               a1*d2 + b1*c2 - c1*b2 + d1*a2
+                              ], dtype=np.float64)
+    return [r0, r1, r2, r3]
+
+
+def quaternion_rotation_matrix(q, p):
+
+    R_matrix = [[1-(2*(q[2]**2 + q[3]**2)), 2*(q[1]*q[2]-q[3]*q[0]), 2*(q[1]*q[3]+q[2]*q[0])],
+                [2*(q[1]*q[2]+q[3]*q[0]), 1-(2*(q[1]**2 + q[3]**2)), 2*(q[2]*q[3]-q[1]*q[0])],
+                [2*(q[1]*q[3]-q[2]*q[0]), 2*(q[2]*q[3]+q[1]*q[0]), 1-(2*(q[1]**2 + q[2]**2))]]
+
+    return np.matmul(R_matrix, p)
+
+
+def quaternion_inverse(q):
+
+    a1, b1, c1, d1 = q
+    b1, c1, d1 = -b1, -c1, -d1
+
+    return [a1, b1, c1, d1]
 
 if __name__ == "__main__":
 

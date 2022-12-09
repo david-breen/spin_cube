@@ -12,8 +12,10 @@ CST_LSS_Port = "COM7"				# For windows platforms
 CST_LSS_Baud = lssc.LSS_DefaultBaud
 
 # Create and open a serial port
-lss.initBus(CST_LSS_Port, CST_LSS_Baud)
-
+try:
+    lss.initBus(CST_LSS_Port, CST_LSS_Baud)
+except:
+    print("COM port " + CST_LSS_Port + " is empty or busy, try another port" )
 # Create an LSS object
 
 # these need to be set to match the servo positions of your gimbal
@@ -40,44 +42,19 @@ def init_gimbals():
         axis.move(0)
 
 
-def quaternion_movement(attitude_mat):
+def gimbal_movement(z_axis, velocity_mat):
 
-    a1, b1, c1, d1 = attitude_mat
-    b1, c1, d1 = -b1, -c1, -d1
-    a2, b2, c2, d2 = [0, 0, 0, 1]
+  
+    r = np.linalg.norm(z_axis)
+    spherical_theta = np.arccos(z_axis[2]/r)
+    spherical_phi = np.arctan2(z_axis[1], z_axis[0])
 
-    # this is just the hamiltonian product
-    r0, r1, r2, r3 = np.array([a1*a2 - b1*b2 - c1*c2 - d1*d2,
-                               a1*b2 + b1*a2 + c1*d2 - d1*c2,
-                               a1*c2 - b1*d2 + c1*a2 + d1*b2,
-                               a1*d2 + b1*c2 - c1*b2 + d1*a2
-                              ], dtype=np.float64)
-
-    a1, b1, c1, d1 = [r0, r1, r2, r3]
-    b1, c1, d1 = -b1, -c1, -d1
-    a2, b2, c2, d2 = [0, 0, 0, 1]
-
-    # this is just the hamiltonian product
-    r0, r1, r2, r3 = np.array([a1*a2 - b1*b2 - c1*c2 - d1*d2,
-                               a1*b2 + b1*a2 + c1*d2 - d1*c2,
-                               a1*c2 - b1*d2 + c1*a2 + d1*b2,
-                               a1*d2 + b1*c2 - c1*b2 + d1*a2
-                              ], dtype=np.float64)
+    print(spherical_theta)
+    print(spherical_phi)
+    print(velocity_mat[2]*(30/np.pi))
     
-    
-    normal = np.linalg.norm([r1,r2,r3])
-    
-    
-    print(r3)
-    if normal == 0:
-        spherical_theta = 0
-        spherical_phi = 0
-    else:
-        spherical_theta = np.arccos(r3/normal)
-        spherical_phi = np.arctan2(r2, r1)
 
-
-    Bphi.move(int(np.degrees*10))
-    Btheta.move(int(np.rad2deg(spherical_theta)*10))
-    Bgamma.move(int(np.rad2deg(spherical_phi)*10))
+    Bphi.move(int(np.rad2deg(spherical_phi))*10)
+    Btheta.move(int(np.rad2deg(spherical_theta))*10)
+    Bgamma.wheelRPM(int(velocity_mat[2])*(30/np.pi))
 
