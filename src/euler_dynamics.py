@@ -147,11 +147,20 @@ def quaternion_hamilton(quat0, quat1):
     return [r0, r1, r2, r3]
 
 
-def quaternion_rotation_matrix(q, p):
+def quaternion_rotation_matrix(quat, p):
 
-    R_matrix = [[1-(2*(q[2]**2 + q[3]**2)), 2*(q[1]*q[2]-q[3]*q[0]), 2*(q[1]*q[3]+q[2]*q[0])],
-                [2*(q[1]*q[2]+q[3]*q[0]), 1-(2*(q[1]**2 + q[3]**2)), 2*(q[2]*q[3]-q[1]*q[0])],
-                [2*(q[1]*q[3]-q[2]*q[0]), 2*(q[2]*q[3]+q[1]*q[0]), 1-(2*(q[1]**2 + q[2]**2))]]
+    R_matrix = np.array([[1-(2*quat[2]**2)-(2*quat[3]**2), 
+                    2*quat[1]*quat[2]-2*quat[0]*quat[3], 
+                    2*quat[1]*quat[3]+2*quat[0]*quat[2]], 
+                    
+                    [2*quat[1]*quat[2]+2*quat[0]*quat[3], 
+                     1-(2*quat[1]**2)-(2*quat[3]**2),
+                     2*quat[2]*quat[3]-2*quat[0]*quat[1]], 
+                    
+                    [2*quat[1]*quat[3]-2*quat[0]*quat[2],
+                     2*quat[2]*quat[3]+2*quat[0]*quat[1],
+                     1-(2*quat[1]**2)-(2*quat[2]**2)]],
+                     float)
 
     return np.matmul(R_matrix, p)
 

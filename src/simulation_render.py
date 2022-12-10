@@ -77,14 +77,14 @@ def drawText(x, y, text):
     glDrawPixels(textSurface.get_width(), textSurface.get_height(), GL_RGBA,
                  GL_UNSIGNED_BYTE, textData)
 
-def renderText():
+def renderText(moments, velocity_mat):
     
-    drawText(0, 100, ui_elements[0].format(10))
-    #drawText(0, 75, ui_elements[1].format(moments[1]))
-    #drawText(0, 50, ui_elements[2].format(moments[2]))
-    #drawText(0, 300, ui_elements[3].format(velocity_mat[0]))
-    #drawText(0, 275, ui_elements[4].format(velocity_mat[1]))
-    #drawText(0, 250, ui_elements[5].format(velocity_mat[2]))
+    drawText(0, 100, ui_elements[0].format(moments[0]))
+    drawText(0, 75, ui_elements[1].format(moments[1]))
+    drawText(0, 50, ui_elements[2].format(moments[2]))
+    drawText(0, 300, ui_elements[3].format(velocity_mat[0]))
+    drawText(0, 275, ui_elements[4].format(velocity_mat[1]))
+    drawText(0, 250, ui_elements[5].format(velocity_mat[2]))
 
 
 def check_button_input():
@@ -92,17 +92,17 @@ def check_button_input():
     moments = [0, 0, 0]
 
     if pygame.key.get_pressed()[K_w]:
-        moments[1] = 1
+        moments[1] = 3
     if pygame.key.get_pressed()[K_s]:
-        moments[1] = -1
+        moments[1] = -3
     if pygame.key.get_pressed()[K_q]:
-        moments[0] = 1
+        moments[0] = 3
     if pygame.key.get_pressed()[K_a]:
-        moments[0] = -1
+        moments[0] = -3
     if pygame.key.get_pressed()[K_e]:
-        moments[2] = 1
+        moments[2] = 3
     if pygame.key.get_pressed()[K_d]:
-        moments[2] = -1
+        moments[2] = -3
     
     return moments
 
@@ -125,22 +125,23 @@ def menu():
 def run_simulation():
 
     pygame.init()
-    display = (1600,1200)
+    display = (1000,1000)
     pygame.display.set_mode(display, DOUBLEBUF|OPENGL)
 
-    s1 = Spacecraft(np.array([5, 3, 1]))
+    s1 = Spacecraft(np.array([3, 3, 5]))
 
     # Initialize the display
     gluPerspective(20, (display[0]/display[1]), 0.1, 70.0)
     glTranslate(0.0, 0.0, -60)
-    glRotatef(0, 0, 0, 0)
+    glRotatef(90, 1, 0, 0)
+    glRotatef(-90, 0, 0, 1)
 
     # Time stuff
-    run_time = 0.01
-    dt = 0.001
+    run_time = 0.1
+    dt = 0.01
 
     # initial conditions
-    initial_velocity = [0.0, 0, 1]    # rad/s
+    initial_velocity = [0, 0, 0]    # rad/s
     initial_attitude = [1, 0, 0, 0] # Unit quaternion orientation [s, i, j, k]
     moments = [0, 0, 0]     # Moments applied to the spacecraft in the B frame
     
@@ -155,6 +156,21 @@ def run_simulation():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 pass
 
+            if pygame.key.get_pressed()[K_w]:
+                moments[1] = 1
+            if pygame.key.get_pressed()[K_s]:
+                moments[1] = -1
+            if pygame.key.get_pressed()[K_q]:
+                moments[0] = 1
+            if pygame.key.get_pressed()[K_a]:
+                moments[0] = -1
+            if pygame.key.get_pressed()[K_e]:
+                moments[2] = 1
+            if pygame.key.get_pressed()[K_d]:
+                moments[2] = -1
+
+
+
         #running simulation for a single frame
         velocity_mat, attitude_mat = simulate_dynamics(s1.Itensor,
                                                        initial_velocity,
@@ -167,21 +183,22 @@ def run_simulation():
         O, x, y, z = quaternion_rotation(initial_attitude, attitude_mat)
         initial_attitude = attitude_mat
         initial_velocity = velocity_mat
+        moments = [0, 0, 0]
         #quaternion_rotation([0, 0, 0, 1], attitude_mat )
         z_axis = quaternion_rotation_matrix(attitude_mat, [0, 0, 1])
-        y_axis = quaternion_rotation_matrix(attitude_mat, [0, 1, 0])
-        x_axis = quaternion_rotation_matrix(attitude_mat, [0, 0, 0])
+        x_axis = quaternion_rotation_matrix(attitude_mat, [1, 0, 0])
         
         glRotatef(O, x, y, z)
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
-        renderText()
-        gimbal_movement(z_axis, velocity_mat)
+        
+        renderText(moments, velocity_mat)
+        gimbal_movement(z_axis, x_axis, velocity_mat)
 
         # Drawing all of the vectors
         draw_space_craft(s1)
-        #axis_of_rotation_line(rot_line)
+        axis_of_rotation_line(z_axis)
         
         pygame.display.flip()
-        pygame.time.wait(10)
+        pygame.time.wait(1000)
 
 run_simulation()

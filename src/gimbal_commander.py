@@ -8,7 +8,7 @@ import lss_const as lssc
 
 # Constants
 #CST_LSS_Port = "/dev/ttyUSB0"		# For Linux/Unix platforms
-CST_LSS_Port = "COM7"				# For windows platforms
+CST_LSS_Port = "COM3"				# For windows platforms
 CST_LSS_Baud = lssc.LSS_DefaultBaud
 
 # Create and open a serial port
@@ -42,19 +42,29 @@ def init_gimbals():
         axis.move(0)
 
 
-def gimbal_movement(z_axis, velocity_mat):
+def test_gimbals():
+    pass
+
+
+def gimbal_movement(z_axis, x_axis, velocity_mat):
 
   
-    r = np.linalg.norm(z_axis)
-    spherical_theta = np.arccos(z_axis[2]/r)
-    spherical_phi = np.arctan2(z_axis[1], z_axis[0])
+    r = np.linalg.norm(x_axis)
 
-    print(spherical_theta)
-    print(spherical_phi)
-    print(velocity_mat[2]*(30/np.pi))
-    
+    spherical_theta = np.arctan2(x_axis[1], x_axis[0])
+    spherical_phi = np.arctan2(x_axis[2], np.sqrt(x_axis[0]**2 + x_axis[1]**2))
+    spherical_gamma = np.arccos(x_axis[0])
+
+    print(int(np.rad2deg(spherical_phi)))
+    print(int(np.rad2deg(spherical_theta)))
+    print(int(np.rad2deg(velocity_mat[2])))
 
     Bphi.move(int(np.rad2deg(spherical_phi))*10)
     Btheta.move(int(np.rad2deg(spherical_theta))*10)
-    Bgamma.wheelRPM(int(velocity_mat[2])*(30/np.pi))
+    Bgamma.move(int(np.rad2deg(spherical_gamma))*10)
 
+
+
+
+if __name__ == "__main__":
+    test_gimbals()
