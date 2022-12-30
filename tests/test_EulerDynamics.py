@@ -1,11 +1,8 @@
-import sys, os
 import numpy as np
-from matplotlib import pyplot as plt
-dir_path = os.path.dirname(os.path.realpath(__file__))
-print(dir_path)
-sys.path.insert(0, dir_path)
-from src.euler_dynamics import *
 import unittest
+from matplotlib import pyplot as plt
+from src.euler_dynamics import euler_dynamics
+
 
 
 class TestDynamics(unittest.TestCase):

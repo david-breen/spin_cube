@@ -34,34 +34,41 @@ def init_gimbals():
 
     for axis in axies:
 
-        axis.setAngularAcceleration(1, lssc.LSS_SetConfig)
-        axis.setAngularDeceleration(1, lssc.LSS_SetConfig)
-        axis.setAngularHoldingStiffness(-3, lssc.LSS_SetConfig)
+        axis.setAngularAcceleration(0.1, lssc.LSS_SetConfig)
+        axis.setAngularDeceleration(0.1, lssc.LSS_SetConfig)
+        axis.setAngularHoldingStiffness(-10, lssc.LSS_SetConfig)
+        axis.setAngularStiffness(-10, lssc.LSS_SetConfig)
         axis.setMaxSpeed(60)
+        print(axis.getAngularAcceleration())
+        print(axis.getAngularDeceleration())
+        print(axis.getAngularHoldingStiffness())
+        print(axis.getAngularStiffness())
+
 
         axis.move(0)
 
 
 def test_gimbals():
-    pass
+    Bphi.move(0)
+    Btheta.move(0)
+    Bgamma.wheel(3)
 
 
 def gimbal_movement(z_axis, x_axis, velocity_mat):
 
-  
     r = np.linalg.norm(x_axis)
 
-    spherical_theta = np.arctan2(x_axis[1], x_axis[0])
-    spherical_phi = np.arctan2(x_axis[2], np.sqrt(x_axis[0]**2 + x_axis[1]**2))
-    spherical_gamma = np.arccos(x_axis[0])
+    spherical_theta = np.arctan2(z_axis[1], z_axis[0])
+    spherical_phi = np.arctan2(z_axis[2], np.sqrt(z_axis[1]**2 + z_axis[0]**2))
+    # spherical_gamma = np.arccos(x_axis[0])
 
-    print(int(np.rad2deg(spherical_phi)))
-    print(int(np.rad2deg(spherical_theta)))
-    print(int(np.rad2deg(velocity_mat[2])))
+    # print(int(np.rad2deg(spherical_phi)))
+    # print(int(np.rad2deg(spherical_theta)))
+    # print(int(np.rad2deg(velocity_mat[2])))
 
     Bphi.move(int(np.rad2deg(spherical_phi))*10)
     Btheta.move(int(np.rad2deg(spherical_theta))*10)
-    Bgamma.move(int(np.rad2deg(spherical_gamma))*10)
+    Bgamma.wheel(int(np.rad2deg(velocity_mat[2])))
 
 
 
