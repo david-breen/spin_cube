@@ -8,15 +8,15 @@ import lss_const as lssc
 
 # Constants
 #CST_LSS_Port = "/dev/ttyUSB0"		# For Linux/Unix platforms
-CST_LSS_Port = "COM3"				# For windows platforms
+CST_LSS_Port = "COM6"				# For windows platforms
 CST_LSS_Baud = lssc.LSS_DefaultBaud
 
-# Create and open a serial port
+'''# Create and open a serial port
 try:
     lss.initBus(CST_LSS_Port, CST_LSS_Baud)
 except:
     print("COM port " + CST_LSS_Port + " is empty or busy, try another port" )
-# Create an LSS object
+# Create an LSS object'''
 
 # these need to be set to match the servo positions of your gimbal
 Bphi = lss.LSS(1)
@@ -24,14 +24,20 @@ Btheta = lss.LSS(0)
 Bgamma = lss.LSS(2)
 axies = [Bphi, Btheta, Bgamma]
 
-# Initialize LSS to position 0.0 deg
+def get_com_port():
 
-# Wait for it to get there
-time.sleep(2)
+    return CST_LSS_Port
 
+def init_gimbals(com_port):
 
-def init_gimbals():
+    CST_LSS_Port = com_port
 
+    try:
+        lss.initBus(CST_LSS_Port, CST_LSS_Baud)
+    except:
+        print("COM port " + CST_LSS_Port + " is empty or busy, try another port" )
+    # Create an LSS object
+    
     for axis in axies:
 
         axis.setAngularAcceleration(0.1, lssc.LSS_SetConfig)
@@ -39,13 +45,14 @@ def init_gimbals():
         axis.setAngularHoldingStiffness(-10, lssc.LSS_SetConfig)
         axis.setAngularStiffness(-10, lssc.LSS_SetConfig)
         axis.setMaxSpeed(60)
-        print(axis.getAngularAcceleration())
-        print(axis.getAngularDeceleration())
-        print(axis.getAngularHoldingStiffness())
-        print(axis.getAngularStiffness())
+        #print(axis.getAngularAcceleration())
+        #print(axis.getAngularDeceleration())
+        #print(axis.getAngularHoldingStiffness())
+        #print(axis.getAngularStiffness())
 
 
         axis.move(0)
+    time.sleep(2)
 
 
 def test_gimbals():
