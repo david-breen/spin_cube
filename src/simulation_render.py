@@ -59,9 +59,35 @@ class Spacecraft:
     def reset_moment(self):
         
         self.moments = [0, 0, 0]
+    
+    def draw_space_craft(self):
+
+        glBegin(GL_LINES)
+        for edge in self.edges:
+            for vertex in edge:
+                glVertex3fv(self.verticies[vertex])
+        glEnd()
 
 
-class Button():
+    def draw_misc_lines(self, verts, eds):
+
+        glBegin(GL_LINES)
+        for ed in eds:
+            for vert in ed:
+                glVertex3fv(verts[vert])
+        glEnd()
+
+
+    def axis_of_rotation_line(self, vector, scale=3):
+
+        self.draw_misc_lines([[0, 0, 0], (np.multiply(vector, scale))],
+                        ((0, 1), (0, 0)))
+
+
+        pass
+
+
+class Button:
 
     def __init__(self, x, y, image):
         self.image = image
@@ -80,7 +106,8 @@ class Button():
 
         return self.clicked
 
-class Slider():
+
+class Slider:
     
     def __init__(self, x, y, color, scale_x=1, scale_y=1 ):
         
@@ -91,6 +118,7 @@ class Slider():
     def draw(self, screen):
         pygame.draw.rect(screen, self.color, self.rect)
         #screen.blit(self.rect)
+
 
 class SliderBar:
     def __init__(self, x, y, width, height, min_value, 
@@ -182,42 +210,11 @@ class TextPG:
         screen.blit(text_surface, (self.x, self.y))
 
 
+#class Sphere:
 
 
-# spacecraft function for drawing the new spacecraft
-def draw_space_craft(spacecraft):
-
-    glBegin(GL_LINES)
-    for edge in spacecraft.edges:
-        for vertex in edge:
-            glVertex3fv(spacecraft.verticies[vertex])
-    glEnd()
 
 
-def draw_misc_lines(verts, eds):
-
-    glBegin(GL_LINES)
-    for ed in eds:
-        for vert in ed:
-            glVertex3fv(verts[vert])
-    glEnd()
-
-
-def axis_of_rotation_line(vector, scale=3):
-
-    draw_misc_lines([[0, 0, 0], (np.multiply(vector, scale))],
-                    ((0, 1), (0, 0)))
-
-
-def axis_of_rotation(velocity_mat):
-
-    normal = np.linalg.norm(velocity_mat)
-
-    p = [(velocity_mat[0]/normal),
-         (velocity_mat[1]/normal),
-         (velocity_mat[2]/normal)]
-
-    return p
 
 
 # Draws the dashboard and UI on the screen
@@ -238,7 +235,6 @@ def renderTextGL(moments, velocity_mat):
     drawTextGL(0, 300, ui_elements[3].format(velocity_mat[0]))
     drawTextGL(0, 275, ui_elements[4].format(velocity_mat[1]))
     drawTextGL(0, 250, ui_elements[5].format(velocity_mat[2]))
-
 
 
 def menu(spacecraft):
@@ -411,11 +407,11 @@ def run_simulation(spacecraft):
         gimbal_movement(z_axis, x_axis, s1.angular_velocity)
         s1.reset_moment()
         # Drawing all of the vectors
-        draw_space_craft(s1)
+        s1.draw_space_craft()
         # axis_of_rotation_line(z_axis)
-        axis_of_rotation_line(axis_of_rotation(s1.angular_velocity), scale=8)
+        #axis_of_rotation_line(axis_of_rotation(s1.angular_velocity), scale=8)
         pygame.display.flip()
-        pygame.time.wait(80)
+        pygame.time.wait(1)
 
 
 if __name__ == "__main__":
