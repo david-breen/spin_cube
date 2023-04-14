@@ -52,6 +52,7 @@ def w_to_Qdot(velocity, quat):
 
     return qdot
 
+
 # Numerical integration of the euler motion and Quaterion rates
 def RK45_step(w, M, Idiag, time, deltat, attitude_quat):
 
@@ -68,6 +69,7 @@ def RK45_step(w, M, Idiag, time, deltat, attitude_quat):
     new_Q = new_Q/np.linalg.norm(new_Q)
     
     return new_w, new_Q
+
 
 # function to simulate the movement over a specified time and dt
 def simulate_dynamics(I_diag, init_velo, attitude, moments, run_time, dt,
@@ -92,7 +94,7 @@ def simulate_dynamics(I_diag, init_velo, attitude, moments, run_time, dt,
 
     for t in time:
 
-        w_hold, Q_hold = RK45_step(velocity_mat[-1], M, Itensor, time, dt,
+        w_hold, Q_hold = RK45_step(velocity_mat[-1], M, Itensor, t, dt,
                                    attitude_mat[-1])
 
         velocity_mat = np.append(velocity_mat, [w_hold] , axis=0)
@@ -131,6 +133,7 @@ def quaternion_rotation(quat0, quat1):
         r_vector = np.divide([r1, r2, r3], normal)
 
     return np.append(np.degrees(2*theta), r_vector)
+
 
 def quaternion_hamilton(quat0, quat1):
 
@@ -172,7 +175,25 @@ def quaternion_inverse(q):
 
     return [a1, b1, c1, d1]
 
+
+def quaternion_2_euler_aa(q):
+
+    theta = 2*np.arctan2(np.linalg.norm(q[1:]), q[0])
+
+    normal = np.linalg.norm(q[1:])
+    theta = np.arctan2(normal, q[0])
+
+    if normal == 0:
+        r_vector = [0, 0, 0]
+    else:
+        r_vector = np.divide(q[1:], normal)
+
+    return np.append(np.degrees(2*theta), r_vector)
+
+
 if __name__ == "__main__":
 
+
+    print(np.linalg.norm([1,0,0,0]))
     print("testing")
     

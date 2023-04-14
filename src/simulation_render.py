@@ -408,8 +408,6 @@ def run_simulation(spacecraft):
         s1.reset_moment()
         # Drawing all of the vectors
         s1.draw_space_craft()
-        # axis_of_rotation_line(z_axis)
-        #axis_of_rotation_line(axis_of_rotation(s1.angular_velocity), scale=8)
         pygame.display.flip()
         pygame.time.wait(1)
 
