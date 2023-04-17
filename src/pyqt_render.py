@@ -24,9 +24,9 @@ class Space(object):
         self.inputs = []
         self.elapsed_time = 0
         self.time = 1
-        self.dt = 0.1
+        self.dt = 0.01
         self.refresh_rate = int((1000/60))
-        self.run_time = 1
+        self.run_time = 0.01
         
 
 
@@ -67,17 +67,15 @@ class Space(object):
         for i in self.inputs:
             
             i.update() 
-            
-            
+
     def display(self):
-            
-            if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
-                QtWidgets.QApplication.instance().exec()
-            
-    
+
+        if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
+            QtWidgets.QApplication.instance().exec()
+
     def simulateDynamics(self):
 
-        if (self.time<1000):
+        if (self.time < 1000):
             for b in self.bodies:
                 b.simulateNext(self.time)
                 b.updateSphere()
@@ -114,9 +112,9 @@ class Sphere(object):
     def __init__(self, name=''):
         
         self.name = name
-        self.modeld = gl.MeshData.sphere(rows=20,cols=20)
-        self.modelw = gl.GLMeshItem(meshdata=self.modeld, drawEdges=True, 
-                                    smooth=True, color=(1, 0, 0, 1), 
+        self.modeld = gl.MeshData.sphere(rows=20, cols=20)
+        self.modelw = gl.GLMeshItem(meshdata=self.modeld, drawEdges=True,
+                                    smooth=True, color=(1, 0, 0, 1),
                                     shader='shaded')
 
         self.modelw.scale(20, 20, 20)
@@ -125,7 +123,6 @@ class Sphere(object):
         self.pos = np.array([0,0,0], ndmin=2)
         self.rot = np.array([0,0,0,0], ndmin=2)
         self.scale = np.array([0,0,0], ndmin=2)
-        
 
     def updateSphere(self):
         
@@ -134,7 +131,6 @@ class Sphere(object):
         self.modelw.translate(self.pos[-1][0],self.pos[-1][1],self.pos[-1][2])
         self.modelw.rotate(self.rot[-1][0],self.rot[-1][1],self.rot[-1][2],
                            self.rot[-1][3], local=True)
-        
 
     def scaleObject(self, new_scale):
 
@@ -146,38 +142,39 @@ class Sphere(object):
     
     def newRotation(self, new_rot):
         
-        self.rot = np.append(self.rot, [new_rot], axis = 0)
+        self.rot = np.append(self.rot, [new_rot], axis=0)
 
     def simulateNext(self, time):
 
-         newRotation = ([90*np.sin(np.deg2rad(time)), 0, 0, 1])
-         self.rot = np.append(self.rot, [newRotation], axis = 0)
-         
+        newRotation = ([90*np.sin(np.deg2rad(time)), 0, 0, 1])
+        self.rot = np.append(self.rot, [newRotation], axis=0)
+
 
 class Cubesat(object):
 
-    def __init__(self, name='', controller=None, orbit=None, camera=True):
+    def __init__(self, name='', controller=None, orbit=None, camera=True, magnetorquers=True):
 
         self.name = name
         self.controller = controller
-        self.camera=camera
+        self.camera = camera
+        self.magnetorquers = magnetorquers
         self.Itensor = np.array([4, 4, 1])
-        self.verticies_base = np.reshape(np.mgrid[-1:2:2, -1:2:2, -1:2:2].T, 
+        self.verticies_base = np.reshape(np.mgrid[-1:2:2, -1:2:2, -1:2:2].T,
                                          (8, 3))
-        
+
         # np.diag(self.Itensor) is a transformation matrix for the verticies
-        self.verticies = np.matmul(self.verticies_base, 
+        self.verticies = np.matmul(self.verticies_base,
                                    (np.divide(np.linalg.inv(np.diag(self.Itensor)),
                                               np.linalg.norm(np.linalg.inv(np.diag(self.Itensor))))))
-        
+
         # Connections between the verticies(like connect the dots)
-        self.faces = np.array([[0,3,1],[0,2,3],[0,1,4],
-                               [0,2,4],[1,4,5],[1,5,7],
-                               [5,6,4],[5,6,7],[3,6,7],
-                               [3,2,6],[6,2,4],[0,2,6]])
+        self.faces = np.array([[0, 3, 1], [0, 2, 3], [0, 1, 4],
+                               [0, 2, 4], [1, 4, 5], [1, 5, 7],
+                               [5, 6, 4], [5, 6, 7], [3, 6, 7],
+                               [3, 2, 6], [6, 2, 4], [0, 2, 6]])
         
         self.modeld = gl.MeshData(vertexes=self.verticies, faces=self.faces)
-        self.modelw = gl.GLMeshItem(meshdata=self.modeld,drawEdges=True)
+        self.modelw = gl.GLMeshItem(meshdata=self.modeld, drawEdges=True)
         self.modelc = gl.MeshData.cylinder(rows=10, cols=20, radius=[0.1, 2.0], 
                                            length=5.)
 
@@ -186,25 +183,29 @@ class Cubesat(object):
         self.colors[:,1] = np.linspace(0, 1, self.colors.shape[0])
         self.modelc.setFaceColors(self.colors)
 
-        self.modelcw = gl.GLMeshItem(meshdata=self.modelc, smooth=True, drawEdges=True, 
-                                     edgeColor=(1,0,0,1), shader='balloon')
+        self.modelcw = gl.GLMeshItem(meshdata=self.modelc, smooth=True,
+                                     drawEdges=True, edgeColor=(1, 0, 0, 1),
+                                     shader='balloon')
+
+        self.modell = gl.GLLinePlotItem(pos=[0,0,0])
+        self.modell.setParentItem(self.modelw)
         
         self.angular_velocity = np.array([0, 0, 0], ndmin=2)
         self.rot = np.array([1, 0, 0, 0], float, ndmin=2)
         self.pos = np.array([0, 0, 0], ndmin=2)
         self.moments = np.array([0, 0, 0])
-        self.setPoint = np.array([1, 0, 0, 0])
+        self.setPoint = np.array([0, 1, 1])  # defined in ECEF
 
-        self.kp = 0.1
+        self.kp = 0.0001
         self.kd = 10
-        self.error = np.array([1, 0, 0, 0])
-        self.derivative = np.array([1, 0, 0, 0])
-        self.lastError = np.array([1, 0, 0, 0])
-        
+        self.error = np.array([0, 0, 0])
+        self.derivative = np.array([0, 0, 0])
+        self.lastError = np.array([0, 0, 0])
+        self.BField = np.array([0, 0, 1])
+        self.antennaVector = np.array([0, 0, -1])
 
-        
     def updateCube(self):
-        
+
         self.modelw.resetTransform()
         self.modelw.translate(self.pos[-1][0],self.pos[-1][1],self.pos[-1][2])
         new_rot = quaternion_2_euler_aa(self.rot[-1])
@@ -212,9 +213,18 @@ class Cubesat(object):
                            local=True)
         if (self.camera):
             self.modelcw.resetTransform()
-            #self.modelcw.rotate(90,1,0,0)
+            # self.modelcw.rotate(90,1,0,0)
             self.modelcw.rotate(new_rot[0], new_rot[1], new_rot[2], new_rot[3], 
-                           local=False)
+                                local=False)
+        if (self.magnetorquers):
+            lastRot = quaternion_hamilton(self.rot[-2], self.rot[-1])
+
+            self.BField = quaternion_rotation_matrix((lastRot),
+                                                     self.BField)
+            self.setPoint = quaternion_rotation_matrix((lastRot),
+                                                     self.setPoint)
+            self.modell.setData(pos=[[0,0,0],self.setPoint])
+            print(self.setPoint)
 
 
     def scaleObject(self):
@@ -222,70 +232,63 @@ class Cubesat(object):
         self.modelw.resetTransform()
         self.modelw.scale()
 
-
     def moveObject(self, new_pos):
 
         self.pos = np.append(self.pos, [new_pos], axis = 0)
-    
 
     def newRotation(self, new_rot):
-        
-        self.rot = np.append(self.rot, [new_rot], axis = 0)
 
+        self.rot = np.append(self.rot, [new_rot], axis = 0)
 
     def actuatorMoment(self, dutyCycle):
         # dutyCycle is a 1x3 array of the duty cycle of the acturators
         # add check for duty cycle shape in future
-        saturationField = np.array([0.1, 0.1, 0.1])
-        coilOrientation = np.array([1, 0, 0, 1, 1])
-        Bfield = [0, 0, 1]
-        saturationForce = np.cross(saturationForce, Bfield)
+        saturationField = np.array([0.1, 0.1, 0.1])  # In Tesla I think
+        # Unit vectors for the magnetorquer forces maths
+        quatVector = np.cross(self.setPoint, self.BField)
+        if(np.linalg.norm(quatVector)!=0):
+            quatVector = np.divide(quatVector, np.linalg.norm(quatVector))
+        dipoleVector = np.cross(quatVector, self.BField)
+        if(np.linalg.norm(dipoleVector)!=0):
+            dipoleVector = np.divide(dipoleVector, np.linalg.norm(dipoleVector))
+        # Multiply the unit vectors by the field strength to get the
+        # saturation force
+        saturationForce = np.multiply(saturationField, dipoleVector)
+        # This can then be controlled by the controller by duty cycling
+        self.moments = np.multiply(saturationForce, dutyCycle)
 
-        self.moments = np.multiply(saturationForce,dutyCycle)
-        
-    #THIS NEEDS WORK!!! ITS HARD CODED FOR ONLY ONE INPUT
-    #THIS NEEDS TO BE IN A QUATERNION FORMAT
+    # THIS NEEDS WORK!!! ITS HARD CODED FOR ONLY ONE INPUT
+    # THIS NEEDS TO BE IN A QUATERNION FORMAT
     def controllerInput(self):
-        
-        quatSetpoint = [1, 
-                        self.controller.x, 
-                        self.controller.y, 
-                        self.controller.z]
-        quatSetpoint = np.divide(quatSetpoint,np.linalg.norm(quatSetpoint))
 
-        self.setPoint = quatSetpoint
-        
-        #print(self.setPoint)
+        Setpoint = [self.controller.x,
+                    self.controller.y,
+                    self.controller.z]
+        Setpoint = np.divide(Setpoint, np.linalg.norm(Setpoint))
 
+        self.setPoint = Setpoint
+
+        # print(self.setPoint)
 
     def controllerPD(self):
-        
+
         self.lastError = self.error
 
-        self.error = self.setPoint-self.rot[-1]
-        derivative = (self.error - self.lastError)
-
-        #This needs to be fixed to account for the sin and cos nature of quats
-        #buuuut yolo
+        self.error = np.arccos(np.divide(np.dot(self.setPoint, self.antennaVector), np.multiply(np.linalg.norm(self.setPoint), np.linalg.norm(self.antennaVector))))
+        derivative = (self.error + self.lastError)
         
+
         adjust = (self.kp*self.error + self.kd*derivative)
 
-        #print(np.clip([adjust[1],adjust[2],adjust[3]], -1, 1))
-        adjust = np.clip(adjust[1:], -1, 1)
-    
-        '''[np.arcsin(adjust[1]), 
-                np.arcsin(adjust[2]), 
-                np.arcsin(adjust[3])]'''
-    
-        return adjust
-    
+        adjust = np.clip(adjust, -1, 1)
 
+        return adjust
 
     def simulateNext(self, dt, run_time):
 
-        #THIS IS A TEMPORARY BODGE
-        #FIND A CLEANER MORE FLEXIBLE WAY
-        self.controllerInput()
+        # THIS IS A TEMPORARY BODGE
+        # FIND A CLEANER MORE FLEXIBLE WAY
+        #self.controllerInput()
         self.actuatorMoment(self.controllerPD())
 
         new_angular_velocity, new_rot = simulate_dynamics(self.Itensor,
@@ -296,10 +299,9 @@ class Cubesat(object):
                                                        dt,
                                                        just_last=True)
               
-        self.rot = np.append(self.rot, [new_rot], axis = 0)
-        self.angular_velocity = np.append(self.angular_velocity, 
-                                          [new_angular_velocity], axis = 0)
-        
+        self.rot = np.append(self.rot, [new_rot], axis=0)
+        self.angular_velocity = np.append(self.angular_velocity,
+                                          [new_angular_velocity], axis=0)
 
 
 class Satjoystick(object):
@@ -316,7 +318,6 @@ class Satjoystick(object):
     def update(self):
 
         self.x, self.y = self.w.getState()
-     
 
 
 class Textbox(object):
@@ -325,11 +326,10 @@ class Textbox(object):
         pass
 
 
-
 class Axies(object):
 
     def __init__(self, body) -> None:
-        
+
         self.axies = body.rot[-1]
         self.modelw = gl.GLLinePlotItem(pos=self.axies)
         pass
@@ -344,14 +344,13 @@ class Axies(object):
         pass
 
 
-
 class Actuator(object):
     
     def __init__(self):
 
         #params
         pass
-    
+
 
 
 if __name__ == '__main__':
@@ -384,6 +383,7 @@ if __name__ == '__main__':
     sim_space.addBodies(earth)
     sim_space.addSatellites(cubesat)
     sim_space.addInputs(controls)
+    sim_space.w.addItem(cubesat.modell)
 
     moon.scaleObject([2,2,2])
     moon.moveObject([20,-23,5])
@@ -392,7 +392,3 @@ if __name__ == '__main__':
 
     sim_space.addGrid()
     sim_space.animation()
-
-    
-
-    

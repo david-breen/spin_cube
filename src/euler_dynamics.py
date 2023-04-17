@@ -28,7 +28,7 @@ def Euler_motion(w, M, Idiag, t):
 # This is the conversion of body fixed angular velocity to Inertial 
 # quaternion rate
 def w_to_Qdot(velocity, quat):
-    
+
     # Principal angles to quaternion matrix transform
     Rq = np.array([[1-(2*quat[2]**2)-(2*quat[3]**2), 
                     2*quat[1]*quat[2]-2*quat[0]*quat[3], 
@@ -165,7 +165,7 @@ def quaternion_rotation_matrix(quat, p):
                      1-(2*quat[1]**2)-(2*quat[2]**2)]],
                      float)
 
-    return np.matmul(R_matrix, p)
+    return np.matmul(p, R_matrix)
 
 
 def quaternion_inverse(q):
